@@ -89,6 +89,35 @@ class TriviaTestCase(unittest.TestCase):
             finally:
                 self.db.session.close()
 
+    def test_delete_questions(self):
+        question_id = 0
+        question = Question(
+            question=self.new_question["question"],
+            answer=self.new_question["answer"],
+            category=self.new_question["category"],
+            difficulty=self.new_question["difficulty"],
+        )
+        with self.app.app_context():
+            try:
+                question.insert()
+                question_id = question.id
+            except:
+                print("Error inserting created test question")
+                self.db.session.rollback()
+            finally:
+                self.db.session.close()
+
+        delete_response = self.client().delete(
+            f"/questions/{question_id}",
+        )
+        data = delete_response.get_json()
+
+        question = Question.query.filter_by(id=question_id).one_or_none()
+
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(data["question_id"], question_id)
+        self.assertIsNone(question)
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

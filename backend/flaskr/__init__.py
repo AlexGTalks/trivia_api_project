@@ -57,24 +57,20 @@ def create_app(test_config=None):
             }
         )
 
-    """
-    @TODO: 
-    Create an endpoint to DELETE question using a question ID. 
-
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page. 
-    """
-
-    """
-    @TODO: 
-    Create an endpoint to POST a new question, 
-    which will require the question and answer text, 
-    category, and difficulty score.
-
-    TEST: When you submit a question on the "Add" tab, 
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.  
-    """
+    @app.route("/questions/<int:question_id>", methods=["DELETE"])
+    def delete_question(question_id):
+        error = False
+        question = Question.query.filter_by(id=question_id).one_or_none()
+        if not question:
+            return abort(404)
+        try:
+            question.delete()
+        except:
+            error = True
+            db.session.rollback()
+        finally:
+            db.session.close()
+        return jsonify({"status": "success", "question_id": question_id})
 
     @app.route("/questions", methods=["POST"])
     def create_question():
@@ -100,7 +96,7 @@ def create_app(test_config=None):
             if error
             else jsonify(
                 {
-                    "success": "success",
+                    "status": "success",
                     "id": question_id,
                     "question": question.question,
                     "answer": question.answer,
