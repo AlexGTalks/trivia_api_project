@@ -31,10 +31,23 @@ def create_app(test_config=None):
     @app.route("/questions")
     def get_questions():
         page = request.args.get("page", 1, int)
-        pagination = Question.query.paginate(page, QUESTIONS_PER_PAGE)
-        categories_query = get_categories_helper()
-        return jsonify(
-            {
+        search_term = request.args.get("search_term", None, str)
+        response = {}
+        if search_term:
+            questions = Question.query.filter(
+                Question.question.ilike(f"%{search_term}%")
+            ).all()
+            response = {
+                "status": "success",
+                "total_questions": len(questions),
+                "questions": [question.format() for question in questions],
+                "current_category": 1,
+                "search_term": search_term,
+            }
+        else:
+            pagination = Question.query.paginate(page, QUESTIONS_PER_PAGE)
+            categories_query = get_categories_helper()
+            response = {
                 "status": "success",
                 "current_page": pagination.page,
                 "total_questions": pagination.total,
@@ -42,7 +55,7 @@ def create_app(test_config=None):
                 "current_category": 0,
                 "categories": categories_query["categories"],
             }
-        )
+        return jsonify(response)
 
     @app.route("/questions/<int:question_id>", methods=["DELETE"])
     def delete_question(question_id):
@@ -92,26 +105,6 @@ def create_app(test_config=None):
                 }
             )
         )
-
-    """
-    @TODO: 
-    Create a POST endpoint to get questions based on a search term. 
-    It should return any questions for whom the search term 
-    is a substring of the question. 
-
-    TEST: Search by any phrase. The questions list will update to include 
-    only question that include that string within their question. 
-    Try using the word "title" to start. 
-    """
-
-    """
-    @TODO: 
-    Create a GET endpoint to get questions based on category. 
-
-    TEST: In the "List" tab / main screen, clicking on one of the 
-    categories in the left column will cause only questions of that 
-    category to be shown. 
-    """
 
     @app.route("/categories/<int:category_id>/questions")
     def get_questions_by_category(category_id):
