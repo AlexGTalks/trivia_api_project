@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 from helpers import get_categories_helper
+import json
 
 from models import setup_db, Question, Category
 
@@ -14,6 +15,7 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     setup_db(app)
+    db = SQLAlchemy()
 
     cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -74,8 +76,35 @@ def create_app(test_config=None):
     of the questions list in the "List" tab.  
     """
 
-    # @app.route("/questions", methods=["POST"])
-    # def create_question():
+    @app.route("/questions", methods=["POST"])
+    def create_question():
+        data = request.get_json()
+        error = False
+        question = Question(
+            question=data["question"],
+            answer=data["answer"],
+            category=data["category"],
+            difficulty=data["difficulty"],
+        )
+        question_id = 0
+        try:
+            question.insert()
+            question_id = question.id
+        except:
+            error = True
+            db.session.rollback()
+        finally:
+            db.session.close()
+        return jsonify(
+            {
+                "success": "success",
+                "id": question_id,
+                "question": question.question,
+                "answer": question.answer,
+                "category": question.category,
+                "difficulty": question.difficulty,
+            }
+        )
 
     """
     @TODO: 

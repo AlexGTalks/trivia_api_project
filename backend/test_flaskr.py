@@ -65,9 +65,29 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["categories"][0]["type"], "Science")
         self.assertEqual(data["questions"][0]["id"], 15)
 
-    # def test_post_questions(self):
-    #     res = self.client().post("/questions", data=self.new_question)
-    #     self.assertEqual(res.status_code, 200)
+    def test_post_questions(self):
+        post_response = self.client().post(
+            "/questions",
+            json=self.new_question,
+        )
+        data = post_response.get_json()
+        question = Question.query.filter_by(question=data["question"]).first()
+
+        self.assertEqual(post_response.status_code, 200)
+        self.assertEqual(data["id"], question.id)
+        self.assertEqual(data["question"], self.new_question["question"])
+        self.assertEqual(data["answer"], self.new_question["answer"])
+        self.assertEqual(data["category"], self.new_question["category"])
+        self.assertEqual(data["difficulty"], self.new_question["difficulty"])
+
+        with self.app.app_context():
+            try:
+                question.delete()
+            except:
+                print("Error deleting created test question")
+                self.db.session.rollback()
+            finally:
+                self.db.session.close()
 
 
 # Make the tests conveniently executable
