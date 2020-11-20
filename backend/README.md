@@ -55,7 +55,7 @@ By default, the frontend will run on localhost:3000.
 In order to run the test you will need to run the following commands from the `/backend` folder:
 
 ```
-dropdb trivia_test // ommit when running for the first time
+dropdb trivia_test //ommit when running for the first time
 createdb trivia_test
 psql trivia_test < trivia.psql
 python test_flaskr.py
@@ -65,7 +65,7 @@ python test_flaskr.py
 
 ### Getting Started
 
-- Base URL: At present this app can only be run locally and is not hosted as a base URL. The backend app is hosted at the default, `http://127.0.0.1:5000/`, which is set as a proxy in the frontend configuration.
+- Base URL: At present this app is not deployed to a remote server and can only be run locally. The base url for the API is `http://127.0.0.1:5000/`, which is set as a proxy in the frontend configuration.
 - Authentication: This version of the application does not require authentication or API keys.
 
 ### Error Handling
@@ -84,7 +84,9 @@ The API will return three error types when requests fail:
 
 - 400: Bad Request
 - 404: Resource Not Found
+- 405: Method Not Allowed
 - 422: Not Processable
+- 500: Internal Server Error
 
 ### Endpoints
 
@@ -104,6 +106,104 @@ The API will return three error types when requests fail:
       '4' : "History",
       '5' : "Entertainment",
       '6' : "Sports"
+  }
+  ```
+
+### GET `/questions`
+
+- Fetches a list questions. This list of questions can be fetched by page (fetching from all the available questions) or by search term which returns only the questions containing a the search term as a substring. When fetching a list of questions the list will be paginated 10 at a time.
+- Request Arguments:
+
+  - Optional:
+    `?page=<int:page_number>`
+
+    `?search_term=<str:search_term>`
+
+- Returns: An list of questions together with the same object returned by `get /categories`
+
+- Request:
+  `curl http://127.0.0.1:5000/questions` - Note: `page` argument will default to 1
+  `curl http://127.0.0.1:5000/questions?page=3`
+
+- Response:
+
+  ```
+  {
+      "categories": {
+          "1": "Science",
+          "2": "Art",
+          "3": "Geography",
+          "4": "History",
+          "5": "Entertainment",
+          "6": "Sports"
+      },
+      "current_category": 0,
+      "current_page": 1,
+      "questions": [
+          {
+          "answer": "Maya Angelou",
+          "category": 4,
+          "difficulty": 2,
+          "id": 5,
+          "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+          },
+          {
+          "answer": "Muhammad Ali",
+          "category": 4,
+          "difficulty": 1,
+          "id": 9,
+          "question": "What boxer's original name is Cassius Clay?"
+          },
+          {
+          "answer": "Apollo 13",
+          "category": 5,
+          "difficulty": 4,
+          "id": 2,
+          "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+          },
+          {
+          "answer": "Tom Cruise",
+          "category": 5,
+          "difficulty": 4,
+          "id": 4,
+          "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+          },
+          ...
+      ],
+      "success": true,
+      "total_questions": 19
+  }
+  ```
+
+  - Request:
+
+  - Request:
+    `curl http://127.0.0.1:5000/questions?search_term=world`
+
+  - Response:
+
+  ```
+  {
+      "current_category": 1,
+      "questions": [
+      {
+          "answer": "Brazil",
+          "category": 6,
+          "difficulty": 3,
+          "id": 10,
+          "question": "Which is the only team to play in every soccer World Cup tournament?"
+      },
+      {
+          "answer": "Uruguay",
+          "category": 6,
+          "difficulty": 4,
+          "id": 11,
+          "question": "Which country won the first ever soccer World Cup in 1930?"
+      }
+      ],
+      "search_term": "world",
+      "success": true,
+      "total_questions": 2
   }
   ```
 
