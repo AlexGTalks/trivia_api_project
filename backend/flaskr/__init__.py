@@ -134,6 +134,22 @@ def create_app(test_config=None):
     and shown whether they were correct or not. 
     """
 
+    @app.route("/quizzes", methods=["POST"])
+    def quiz_question():
+        data = request.get_json()
+        questions = Question.query.filter(
+            Question.id.notin_(data["previous_questions"]),
+            Question.category == data["quiz_category"]["id"],
+        ).all()
+        return jsonify(
+            {
+                "status": "success",
+                "question": None if len(questions) < 1 else questions[0].format(),
+                "total_questions": len(questions),
+                "current_category": data["quiz_category"],
+            }
+        )
+
     """
     @TODO: 
     Create error handlers for all expected errors 
