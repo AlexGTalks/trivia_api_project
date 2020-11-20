@@ -90,13 +90,15 @@ The API will return three error types when requests fail:
 
 ### Endpoints
 
-### GET `/categories`
+#### GET `/categories`
 
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
 - Request Arguments: None
 - Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs.
 - Request:
-  `curl http://127.0.0.1:5000/categories`
+  ```
+  curl http://127.0.0.1:5000/categories
+  ```
 - Response:
   ```
   {
@@ -109,7 +111,7 @@ The API will return three error types when requests fail:
   }
   ```
 
-### GET `/questions`
+#### GET `/questions`
 
 - Fetches a list questions. This list of questions can be fetched by page (fetching from all the available questions) or by search term which returns only the questions containing a the search term as a substring. When fetching a list of questions the list will be paginated 10 at a time.
 - Request Arguments:
@@ -124,7 +126,7 @@ The API will return three error types when requests fail:
     ?search_term=<str:search_term>
     ```
 
-- Returns: An list of questions together with the same object returned by `get /categories`
+- Returns a list of questions together with the same object returned by `get /categories`
 
 - Request:
 
@@ -188,10 +190,13 @@ The API will return three error types when requests fail:
   }
   ```
 
-  - Request:
-    `curl http://127.0.0.1:5000/questions?search_term=world`
+- Request:
 
-  - Response:
+  ```
+  curl http://127.0.0.1:5000/questions?search_term=world
+  ```
+
+- Response:
 
   ```
   {
@@ -218,90 +223,48 @@ The API will return three error types when requests fail:
   }
   ```
 
-#### GET /books
+#### POST /questions
 
-- General:
-  - Returns a list of book objects, success value, and total number of books
-  - Results are paginated in groups of 8. Include a request argument to choose page number, starting from 1.
-- Sample: `curl http://127.0.0.1:5000/books`
+- Creates a new question using the submitted question, answer, difficulty, and category. using the submitted title, author and rating.
+- The request body should be a JSON object and come in the following schema:
 
-```{
-  "books": [
-    {
-      "author": "Stephen King",
-      "id": 1,
-      "rating": 5,
-      "title": "The Outsider: A Novel"
-    },
-    {
-      "author": "Lisa Halliday",
-      "id": 2,
-      "rating": 5,
-      "title": "Asymmetry: A Novel"
-    },
-    {
-      "author": "Kristin Hannah",
-      "id": 3,
-      "rating": 5,
-      "title": "The Great Alone"
-    },
-    {
-      "author": "Tara Westover",
-      "id": 4,
-      "rating": 5,
-      "title": "Educated: A Memoir"
-    },
-    {
-      "author": "Jojo Moyes",
-      "id": 5,
-      "rating": 5,
-      "title": "Still Me: A Novel"
-    },
-    {
-      "author": "Leila Slimani",
-      "id": 6,
-      "rating": 5,
-      "title": "Lullaby"
-    },
-    {
-      "author": "Amitava Kumar",
-      "id": 7,
-      "rating": 5,
-      "title": "Immigrant, Montana"
-    },
-    {
-      "author": "Madeline Miller",
-      "id": 8,
-      "rating": 5,
-      "title": "CIRCE"
-    }
-  ],
-"success": true,
-"total_books": 18
-}
-```
+  ```
+  {
+      "question": {"type": "string"},
+      "answer": {"type": "string"},
+      "difficulty": {"type": "integer"},
+      "category": {"type": "integer"},
+  }
+  ```
 
-#### POST /books
+  - Note: all fields are required or else an error response will be returned
 
-- General:
-  - Creates a new book using the submitted title, author and rating. Returns the id of the created book, success value, total books, and book list based on current page number to update the frontend.
-- `curl http://127.0.0.1:5000/books?page=3 -X POST -H "Content-Type: application/json" -d '{"title":"Neverwhere", "author":"Neil Gaiman", "rating":"5"}'`
-
-```
-{
-  "books": [
-    {
-      "author": "Neil Gaiman",
-      "id": 24,
-      "rating": 5,
-      "title": "Neverwhere"
-    }
-  ],
-  "created": 24,
-  "success": true,
-  "total_books": 17
-}
-```
+- Returns an JSON object:
+  ```
+  {
+  "answer": String,
+  "category": Int,
+  "difficulty": Int,
+  "id": Int,
+  "question": String,
+  "success": Boolean
+  }
+  ```
+- Request:
+  ```
+  curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{"question":"who am I?", "answer":"Alejandro", "difficulty":2, "category":1}'
+  ```
+- Response:
+  ```
+  {
+      "answer": "Alejandro",
+      "category": 1,
+      "difficulty": 2,
+      "id": 25,
+      "question": "who am I?",
+      "success": true
+  }
+  ```
 
 #### DELETE /books/{book_id}
 
@@ -378,8 +341,8 @@ The API will return three error types when requests fail:
 
 ## Authors
 
-Yours truly, Coach Caryn
+Alejandro Guillamon and the Udacity team
 
 ## Acknowledgements
 
-The awesome team at Udacity and all of the students, soon to be full stack extraordinaires!
+The awesome team at Udacity and Coach Caryn
