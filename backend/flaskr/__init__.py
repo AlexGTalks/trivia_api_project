@@ -23,6 +23,11 @@ def create_app(test_config=None):
     @TODO: Use the after_request decorator to set Access-Control-Allow
     """
 
+    @app.after_request
+    def after_request_func(response):
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
+
     @app.route("/categories")
     def get_categories():
         page = request.args.get("page", 1, int)
