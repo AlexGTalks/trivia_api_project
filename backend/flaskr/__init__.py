@@ -5,6 +5,7 @@ from flask_cors import CORS
 import random
 from helpers import get_categories_helper
 import json
+from cerberus import Validator
 
 from models import setup_db, Question, Category
 
@@ -18,10 +19,6 @@ def create_app(test_config=None):
     db = SQLAlchemy()
 
     cors = CORS(app, resources={r"/*": {"origins": "*"}})
-
-    """
-    @TODO: Use the after_request decorator to set Access-Control-Allow
-    """
 
     @app.after_request
     def after_request_func(response):
@@ -79,8 +76,17 @@ def create_app(test_config=None):
 
     @app.route("/questions", methods=["POST"])
     def create_question():
-        data = request.get_json()
         error = False
+        data = request.get_json()
+        schema = {
+            "question": {"type": "string"},
+            "answer": {"type": "string"},
+            "difficulty": {"type": "integer"},
+            "category": {"type": "integer"},
+        }
+        v = Validator(schema, require_all=True, allow_unknown=True)
+        if not v(data):
+            return abort(400)
         question = Question(
             question=data["question"],
             answer=data["answer"],
@@ -130,6 +136,19 @@ def create_app(test_config=None):
     @app.route("/quizzes", methods=["POST"])
     def quiz_question():
         data = request.get_json()
+        schema = {
+            "previous_questions": {"type": "list"},
+            "quiz_category": {
+                "type": "dict",
+                "require_all": True,
+                "schema": {
+                    "id": {"type": "integer"},
+                },
+            },
+        }
+        v = Validator(schema, require_all=True, allow_unknown=True)
+        if not v(data):
+            return abort(400)
         questions = Question.query.filter(
             Question.id.notin_(data["previous_questions"]),
             Question.category == data["quiz_category"]["id"],
@@ -148,4 +167,60 @@ def create_app(test_config=None):
     Create error handlers for all expected errors 
     including 404 and 422. 
     """
+
+    @app.errorhandler(400)
+    def bad_request(e):
+        return (
+            jsonify({"error": "400", "message": "bad request", "status": "failed"}),
+            400,
+        )
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return (
+            jsonify(
+                {"error": "404", "message": "resource not found", "status": "failed"}
+            ),
+            404,
+        )
+
+    @app.errorhandler(405)
+    def not_method(e):
+        return (
+            jsonify(
+                {
+                    "error": "405",
+                    "message": "method not allowed, refer to the documentation for list of allowed methods",
+                    "status": "failed",
+                }
+            ),
+            405,
+        )
+
+    @app.errorhandler(422)
+    def unprossesable(e):
+        return (
+            jsonify(
+                {
+                    "error": "422",
+                    "message": "Unprocessable entity, please format your data in as explained in the api documentation",
+                    "status": "failed",
+                }
+            ),
+            422,
+        )
+
+    @app.errorhandler(500)
+    def internal_error(e):
+        return (
+            jsonify(
+                {
+                    "error": "500",
+                    "message": "That is weird... Something went wrong on our side and the server failed to process the request",
+                    "status": "failed",
+                }
+            ),
+            500,
+        )
+
     return app
